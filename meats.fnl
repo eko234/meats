@@ -1,20 +1,52 @@
-(local dba ((require :flat) "./db"))
-(local dbb ((require :flat) "./db"))
+(local db ((require :flat) "./db"))
+(local L (require :lummander))
+(local view (require :fennel.view))
 
-; (each [ix val (ipairs dba.names)]
-;   (print val))
+(fn iter->table [iter]
+  (icollect [v iter] v ))
 
+(fn disarray [map]
+  (icollect [k v (pairs map)]
+            {:entry (string.format "%s:%s:%s" k v.x v.y)
+             :hot v.hot}))
 
-(print dba.names.mile.name)
-(print dba.names.mile.desc)
+(local cli
+  (L.new {:title       :meats
+          :tag         :meats
+          :description "file + position store for text editors, make sure to have a db directory besides this boy"
+          :theme       :acid }))
 
-(tset dba :names :mile :name "still her")
-(tset dbb :names :mile :desc "lets dable in here")
+(-> cli
+    (: :command "flash" "show your meat")
+    (: :action (fn [parsed command app]
+                 (let
+                   [disarrayed   (disarray db.meats)
+                    sorting_done (table.sort disarrayed (fn [a b] (> a.hot b.hot)))
+                    [head & tail] disarrayed]
+                   (print (.. (accumulate [acc head.entry
+                                           ix el (ipairs tail)]
+                                          (.. acc "\n" el.entry)) "\n"))))))
 
-; (tset dba :names :mile {:name "Mile en efecto"
-;                         :desc "now this is a struct"})
+(-> cli
+    (: :command "eat" "empty the grill")
+    (: :action (fn [parsed command app]
+                 (set db.meats {})
+                 (db:save))))
 
-; (tset dbb :names :paca "Paca en efecto")
+(-> cli
+    (: :command "taste <meat>" "eat one up")
+    (: :action (fn [parsed command app]
+                 (let
+                   [[file & maybe_more] (iter->table (string.gmatch parsed.meat "([^:]+)"))]
+                   (tset db :meats file nil)
+                   (db:save)))))
 
-; (: dba :save)
+(-> cli
+    (: :command "stab <meat>" "streak a meat on top of the rest")
+    (: :action (fn [parsed command app]
+                 (let
+                   [[file pos_x pos_y &as meat] (iter->table (string.gmatch parsed.meat "([^:]+)"))]
+                   (tset db :meats file {:x pos_x :y pos_y :hot (os.time)})
+                   (db:save)))))
 
+(cli:parse arg)
