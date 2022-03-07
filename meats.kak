@@ -1,40 +1,51 @@
-declare-user-mode meats
-
-map global user j ':enter-user-mode meats<ret>' -docstring 'yummy'
-map global meats j ':flash-n-lick <ret>'        -docstring 'get some'
-map global meats s ':stab <ret>'                -docstring 'shove'
-map global meats e ':eat <ret>'                 -docstring 'slurp'
-
-define-command stab %{
-  info -style modal "enter a key to save :)"
-  on-key %|
-    info -style modal
-    echo %sh{
-      fennel ~/meats/meats.fnl stab "$kak_key:$kak_buffile:$kak_cursor_line:$kak_cursor_column"
-    }
-  |
+define-command open-meats -docstring %{ open a buffer with all your saved marks, it refers to the file where they are stored so you can manipulate it } -override %{
+  edit %sh{
+    rootdir=$(git rev-parse --show-toplevel)
+    meatsfile="$rootdir/.meats"
+    [[ -f "$meatsfile" ]] || touch "$meatsfile"
+    printf "$meatsfile\n"
+  }
+  set buffer autoreload true
 }
 
-define-command flash-n-lick %{
+define-command stab -override -docstring %{ save a meat to marks } %{
+  info -style modal "Stab!!!: "
+  on-key %{
+    info -style modal
+    nop %sh{ 
+      rootdir=$(git rev-parse --show-toplevel)
+      meatsfile="$rootdir/.meats"
+      [[ -f "$meatsfile" ]] || touch "$meatsfile"
+      cat "$meatsfile" | grep -v "^$kak_key" | tee "$meatsfile" 1>/dev/null
+      cat "$meatsfile" | kak -f "ggi$kak_key::$kak_buffile:$kak_cursor_line:$kak_cursor_column<ret>" | tee "$meatsfile" 1>/dev/null
+    }
+    echo ::SAGE::
+  }
+}
+
+define-command lick -override -docstring %{ prompt for a key to open a mark } %{
   info -style modal %sh{
-    fennel ~/meats/meats.fnl flash
+    rootdir=$(git rev-parse --show-toplevel)
+    meatsfile="$rootdir/.meats"
+    printf "Pick your poison:\n"
+    cat "$meatsfile" | xargs printf "%s\n"
   }
-
-  on-key %@
+  on-key %{
     info -style modal
-    evaluate-commands %sh{
-      if [ ${#kak_key} -gt 1 ]; then
-        echo "nop"
-      else
-        filetoedit=$(fennel ~/meats/meats.fnl lick "$kak_key")
-        echo "edit $filetoedit"
-      fi
+    eval %sh{
+      rootdir=$(git rev-parse --show-toplevel)
+      meatsfile="$rootdir/.meats"
+      command=$(cat "$meatsfile" | grep -m 1 "^$kak_key" | kak -f 's.<plus>::<ret>dxs:<ret>r<space>')
+      printf "edit $command\n"
+      # printf "edit ~/.config/kak/kakrc 12 12"
     }
-  @
-}
-
-define-command eat %{
-  nop %sh{
-    fennel ~/meats/meats.fnl eat
   }
 }
+
+# Suggested mappings
+# declare-user-mode meats
+# map global user  u ': enter-user-mode meats<ret>'
+# map global meats u ': stab<ret>'       -docstring "STAB"
+# map global meats i ': lick<ret>'       -docstring "LICK"
+# map global meats o ': open-meats<ret>' -docstring "PEEK"
+
