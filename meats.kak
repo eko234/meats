@@ -1,4 +1,4 @@
-define-command open-meats -docstring %{ open a buffer with all your saved marks, it refers to the file where they are stored so you can manipulate it } -override %{
+define-command peek -docstring %{ open a buffer with all your saved marks, it refers to the file where they are stored so you can manipulate it } -override %{
   edit %sh{
     rootdir=$(git rev-parse --show-toplevel)
     meatsfile="$rootdir/.meats"
@@ -47,5 +47,4 @@ define-command lick -override -docstring %{ prompt for a key to open a mark } %{
 # map global user  u ': enter-user-mode meats<ret>'
 # map global meats u ': stab<ret>'       -docstring "STAB"
 # map global meats i ': lick<ret>'       -docstring "LICK"
-# map global meats o ': open-meats<ret>' -docstring "PEEK"
-
+# map global meats o ': peek<ret>'       -docstring "PEEK"
