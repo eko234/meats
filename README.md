@@ -1,0 +1,15 @@
+# MEATS
+
+Bikeshedding Harpoon for kakoune,
+it uses a .meats file that is created
+in the first git root that it finds depending
+on where you launch this bad boy
+
+## suggested mappings
+```kakscript
+declare-user-mode meats
+map global user  u ': enter-user-mode meats<ret>'
+map global meats u ': stab<ret>' -docstring "save"
+map global meats i ': lick<ret>' -docstring "pick"
+map global meats o ': peek<ret>' -docstring "open"
+```

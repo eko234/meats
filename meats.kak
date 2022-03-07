@@ -41,10 +41,3 @@ define-command lick -override -docstring %{ prompt for a key to open a mark } %{
     }
   }
 }
-
-# Suggested mappings
-# declare-user-mode meats
-# map global user  u ': enter-user-mode meats<ret>'
-# map global meats u ': stab<ret>'       -docstring "STAB"
-# map global meats i ': lick<ret>'       -docstring "LICK"
-# map global meats o ': peek<ret>'       -docstring "PEEK"
